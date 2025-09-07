@@ -1,0 +1,35 @@
+<div id="notes-{{ claim.id }}">
+  <!-- Sample Notes -->
+  <div class="space-y-3">
+    <div class="border-l-4 border-blue-400 pl-3">
+      <div class="flex items-center justify-between mb-1">
+        <span class="text-sm font-medium text-gray-700">Admin Note</span>
+        <span class="text-xs text-gray-500">2 days ago</span>
+      </div>
+      <p class="text-sm text-gray-600">Requires additional medical records for processing. Contacted provider.</p>
+    </div>
+    
+    <div class="border-l-4 border-yellow-400 pl-3">
+      <div class="flex items-center justify-between mb-1">
+        <span class="text-sm font-medium text-gray-700">System Flag</span>
+        <span class="text-xs text-gray-500">1 week ago</span>
+      </div>
+      <p class="text-sm text-gray-600">Potential underpayment detected - review recommended.</p>
+    </div>
+  </div>
+
+  <!-- Dynamic Notes -->
+  {% if claim.notes.all %}
+  <div class="space-y-3 mt-4 pt-4 border-t">
+    {% for note in claim.notes.all %}
+      <div class="border-l-4 border-gray-300 pl-3">
+        <div class="flex items-center justify-between mb-1">
+          <span class="text-sm font-medium text-gray-700">{{ note.author.username|default:"User" }}</span>
+          <span class="text-xs text-gray-500">{{ note.created_at|timesince }} ago</span>
+        </div>
+        <p class="text-sm text-gray-600">{{ note.text }}</p>
+      </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+</div>

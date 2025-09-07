@@ -1,0 +1,136 @@
+{% extends "claims/base.html" %}
+{% block content %}
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+  <div class="lg:col-span-2">
+    <div class="bg-white rounded-lg shadow">
+      <!-- Search and Filter Bar -->
+      <div class="p-4 border-b">
+        <form method="GET" class="flex items-center gap-4" hx-get="{% url 'claim_list' %}" hx-target="#claims-table" hx-trigger="input delay:300ms from:#search, change from:#status-filter">
+          <div class="flex-1 relative">
+            <input type="text" name="search" id="search" value="{{ request.GET.search }}" placeholder="Search claims..." 
+                   class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <svg class="absolute left-3 top-2.5 h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+            </svg>
+          </div>
+          <select name="status" id="status-filter" class="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <option value="">All Status</option>
+            <option value="Denied" {% if request.GET.status == "Denied" %}selected{% endif %}>Denied</option>
+            <option value="Paid" {% if request.GET.status == "Paid" %}selected{% endif %}>Paid</option>
+            <option value="Under Review" {% if request.GET.status == "Under Review" %}selected{% endif %}>Under Review</option>
+            <option value="Pending" {% if request.GET.status == "Pending" %}selected{% endif %}>Pending</option>
+          </select>
+        </form>
+      </div>
+
+      <!-- Table -->
+      <div class="overflow-x-auto">
+        <table class="w-full">
+          <thead class="bg-gray-50 border-b">
+            <tr>
+              <th class="text-left py-3 px-4 font-medium text-gray-700">Claim ID</th>
+              <th class="text-left py-3 px-4 font-medium text-gray-700">Patient</th>
+              <th class="text-left py-3 px-4 font-medium text-gray-700">Billed</th>
+              <th class="text-left py-3 px-4 font-medium text-gray-700">Paid</th>
+              <th class="text-left py-3 px-4 font-medium text-gray-700">Status</th>
+              <th class="text-left py-3 px-4 font-medium text-gray-700">Insurer</th>
+              <th class="text-left py-3 px-4 font-medium text-gray-700">Discharge Date</th>
+              <th class="text-left py-3 px-4 font-medium text-gray-700">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="claims-table">
+            {% for claim in page_obj %}
+              {% include "claims/partial_claim_row.html" with claim=claim %}
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination -->
+      <div id="pagination-controls">
+      {% if page_obj.has_other_pages %}
+      <div class="px-4 py-3 border-t flex items-center justify-between">
+        <div class="text-sm text-gray-700">
+          Showing {{ page_obj.start_index }} to {{ page_obj.end_index }} of {{ page_obj.paginator.count }} results
+        </div>
+        <div class="flex items-center gap-2">
+          {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}"
+              class="px-3 py-1 border border-gray-300 rounded text-sm hover:bg-gray-50"
+              hx-boost="false">Previous</a>
+          {% endif %}
+
+          <span class="px-3 py-1 bg-blue-500 text-white rounded text-sm">{{ page_obj.number }}</span>
+
+          {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}"
+              class="px-3 py-1 border border-gray-300 rounded text-sm hover:bg-gray-50"
+              hx-boost="false">Next</a>
+          {% endif %}
+        </div>
+      </div>
+      {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- 
+    This is the right-hand column where the details of a selected claim will appear.
+    The `id="detail-panel"` is the target for the "View" button in each table row,
+    allowing HTMX to load the claim's details right here.
+  -->
+  <div class="space-y-6" id="detail-panel">
+    {% if selected_claim %}
+      {% include "claims/partial_claim_detail.html" with claim=selected_claim %}
+    {% else %}
+      <div class="bg-white rounded-lg shadow p-6 text-center text-gray-500">
+        <p>Select a claim to view details</p>
+      </div>
+    {% endif %}
+  </div>
+</div>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const statusFilter = document.getElementById('status-filter');
+  statusFilter.addEventListener('change', (e) => {
+    localStorage.setItem('statusFilter', e.target.value);
+  });
+   function updatePaginationLinksWithStatus() {
+        // 1. Get the saved status from localStorage
+        const savedStatus = localStorage.getItem('statusFilter');
+
+        // 2. If no status is saved, there's nothing to do
+        if (!savedStatus) {
+            console.log("No status filter found in localStorage.");
+            return;
+        }
+
+        // 3. Find all anchor tags within our pagination container
+        const paginationLinks = document.querySelectorAll('#pagination-controls a');
+
+        // 4. Loop through each link (e.g., "Previous" and "Next")
+        paginationLinks.forEach(link => {
+            // Use the URL API to safely modify the link's href
+            const url = new URL(link.href);
+            
+            // Set the 'status' query parameter. This will add it if it's
+            // not there, or update it if it already exists.
+            url.searchParams.set('status', savedStatus);
+            
+            // Update the link's href attribute with the new URL
+            link.href = url.toString();
+        });
+    }
+
+    // Run the function as soon as the page is loaded
+    updatePaginationLinksWithStatus();
+    
+    // IMPORTANT FOR HTMX: Run the function again after HTMX swaps content,
+    // in case the pagination controls are part of the swapped content.
+    document.body.addEventListener('htmx:afterSwap', function() {
+        updatePaginationLinksWithStatus();
+    });
+});
+</script>
+{% endblock %}
+

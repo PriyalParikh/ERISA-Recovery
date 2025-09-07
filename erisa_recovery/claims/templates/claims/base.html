@@ -1,0 +1,40 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+  <title>ERISA Recovery</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="csrf-token" content="{{ csrf_token }}">
+  <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+  <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  
+  <script>
+    // This handy script tells HTMX to always include Django's special security token with its requests.
+    document.addEventListener('htmx:configRequest', function(evt) {
+      evt.detail.headers['X-CSRFToken'] = document.querySelector('[name=csrfmiddlewaretoken]')?.value || 
+                                         document.querySelector('meta[name=csrf-token]')?.content;
+    });
+  </script>
+</head>
+<body class="p-6 bg-gray-100">
+<header class="bg-white shadow-md">
+  <div class="container mx-auto px-6 py-4 flex items-center justify-between">
+    <h1 class="text-xl font-bold text-gray-800">Claims Management System</h1>
+    <nav class="space-x-4 text-sm font-medium">
+        {% if user.is_authenticated %}
+          <a href="{% url 'claim_list' %}" class="text-gray-600 hover:text-blue-600">Dashboard</a>
+          {% if user.is_superuser %}
+            <a href="{% url 'admin_dashboard' %}" class="text-gray-600 hover:text-blue-600">Admin Dashboard</a>
+          {% endif %}
+          <a href="{% url 'logout' %}" class="text-gray-600 hover:text-blue-600">Logout</a>
+        {% else %}
+          <a href="{% url 'login' %}" class="text-gray-600 hover:text-blue-600">Login</a>
+          <a href="{% url 'register' %}" class="text-gray-600 hover:text-blue-600">Register</a>
+        {% endif %}
+      </nav>
+    </div>
+    {% block content %}{% endblock %}
+  </div>
+</body>
+</html>

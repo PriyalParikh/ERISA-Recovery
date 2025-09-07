@@ -1,0 +1,17 @@
+{% extends "claims/base.html" %}
+{% block content %}
+<div class="max-w-xl mx-auto bg-white rounded-lg shadow p-8 mt-8">
+  <h2 class="text-2xl font-bold mb-6 text-center">Upload Claims Data</h2>
+  {% if msg %}
+    <div class="mb-4 p-3 bg-green-100 text-green-800 rounded">{{ msg }}</div>
+  {% endif %}
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="w-full mt-4 bg-blue-600 text-white py-2 rounded">Upload</button>
+  </form>
+  <div class="mt-4 text-sm text-gray-600">
+    <b>Supported formats:</b> CSV or JSON. Overwrite will delete all existing data.
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,3 @@
+{% for claim in page_obj %}
+  {% include "claims/partial_claim_row.html" with claim=claim %}
+{% endfor %}

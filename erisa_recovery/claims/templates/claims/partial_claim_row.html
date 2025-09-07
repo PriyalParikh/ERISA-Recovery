@@ -1,0 +1,46 @@
+<tr id="claim-{{ claim.id }}" class="border-b hover:bg-gray-50 cursor-pointer {% if claim.flagged %}bg-yellow-50{% endif %}"
+    hx-get="{% url 'claim_detail_partial' claim.id %}"
+    hx-target="#detail-panel"
+    hx-trigger="click">
+  <td class="py-3 px-4">
+    <span class="text-blue-600 hover:text-blue-800 font-medium">{{ claim.id }}</span>
+  </td>
+  <td class="py-3 px-4 text-gray-900">{{ claim.patient_name }}</td>
+  <td class="py-3 px-4 text-gray-900">${{ claim.billed_amount|floatformat:2 }}</td>
+  <td class="py-3 px-4 {% if claim.paid_amount == 0 %}text-red-600{% else %}text-green-600{% endif %}">${{ claim.paid_amount|floatformat:2 }}</td>
+  <td class="py-3 px-4">
+    {% if claim.status == "Denied" %}
+      <span class="inline-flex px-2 py-1 text-xs font-medium bg-red-100 text-red-800 rounded-full">Denied</span>
+    {% elif claim.status == "Paid" %}
+      <span class="inline-flex px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full">Paid</span>
+    {% elif claim.status == "Under Review" %}
+      <span class="inline-flex px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded-full">Under Review</span>
+    {% else %}
+      <span class="inline-flex px-2 py-1 text-xs font-medium bg-gray-100 text-gray-800 rounded-full">{{ claim.status }}</span>
+    {% endif %}
+  </td>
+  <td class="py-3 px-4 text-gray-900">{{ claim.insurer_name }}</td>
+  <td class="py-3 px-4 text-gray-900">{{ claim.discharge_date|date:"n/j/Y" }}</td>
+  <td class="py-3 px-4">
+    <div class="flex items-center gap-2">
+      <button class="text-gray-400 hover:text-gray-600" title="View">
+        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+        </svg>
+      </button>
+      <button 
+        hx-post="{% url 'toggle_flag' claim.id %}" 
+        hx-target="#claim-{{ claim.id }}" 
+        hx-swap="outerHTML"
+        hx-trigger="click"
+        onclick="event.stopPropagation()"
+        class="text-gray-400 hover:text-red-600 {% if claim.flagged %}text-red-600{% endif %}" 
+        title="Flag">
+        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 21v-4m0 0V5a2 2 0 012-2h6.586a1 1 0 01.707.293l2.414 2.414a1 1 0 00.707.293H20a2 2 0 012 2v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"></path>
+        </svg>
+      </button>
+    </div>
+  </td>
+</tr>
